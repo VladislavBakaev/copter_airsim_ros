@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+from enum import Flag
+from sys import flags
 import rospy
 from sensor_msgs.msg import NavSatFix, Range, Imu
 import numpy as np
@@ -22,17 +24,40 @@ class GeodeticParam():
         return sqrt(x**2 + y**2 + z**2)
 
 
+class ParametersLoader():
+    def __init__(self) -> None:
+        flag = True
+        rospy.loginfo('Loading parameters')
+        while flag:
+            self.lidar_rate = rospy.get_param('lidar_rate', False)
+            self.lidar_accuracy = rospy.get_param('lidar_accuracy', False)
+            self.aion_rate = rospy.get_param('aion_rate', False)
+            self.aion_accuracy = rospy.get_param('aion_accuracy', False)
+            self.gps_rate = rospy.get_param('gps_rate', False)
+            self.gps_accuracy = rospy.get_param('gps_accuracy', False)
+            self.imu_rate = rospy.get_param('imu_rate', False)
+            self.imu_orientation_accuracy = rospy.get_param('imu_orientation_accuracy', False)
+            self.imu_angular_velocity_accuracy = rospy.get_param('imu_angular_velocity_accuracy', False)
+            self.imu_linear_acceleration_accuracy = rospy.get_param('imu_linear_acceleration_accuracy', False)
+            if(self.lidar_rate and self.lidar_accuracy and self.aion_rate and\
+                self.aion_accuracy and self.gps_rate and self.gps_accuracy and\
+                self.imu_rate and self.imu_angular_velocity_accuracy and\
+                self.imu_linear_acceleration_accuracy and self.imu_orientation_accuracy):
+                flag = False
+        rospy.loginfo('Param loaded')
+
+
 class LidarNoizer():
-    def __init__(self, vehicle_name) -> None:
+    def __init__(self, vehicle_name, params) -> None:
         rospy.Subscriber('/airsim_node/'+vehicle_name+'/distance/Distance', Range, self.laser_data_cb)
         self.publisher = rospy.Publisher('/'+vehicle_name+'/laser_dist_topic', Range, queue_size=10)
 
-        self.rate = 1/100
+        self.rate = 1/params.lidar_rate
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_laser_data)
 
         self.range_ = 0.0
-        self.accuracy = 1
+        self.accuracy = params.lidar_accuracy
         self.msg = Range()
 
         #probabilistic param
@@ -67,17 +92,17 @@ class LidarNoizer():
 
 
 class AionNoizer():
-    def __init__(self, vehicle_name, geo_param) -> None:
+    def __init__(self, vehicle_name, geo_param, params) -> None:
         rospy.Subscriber('/airsim_node/'+vehicle_name+'/aion/Aion', NavSatFix, self.aion_data_cb)
         self.publisher = rospy.Publisher('/'+vehicle_name+'/aion_nav_topic', NavSatFix, queue_size=10)
 
-        self.rate = 1/1
+        self.rate = 1/params.aion_rate
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_aion_data)
         self.msg = NavSatFix()
 
         self.geo_param = geo_param
-        self.accuracy = [1,1]
+        self.accuracy = params.aion_accuracy
         self.accuracy_blowout_k = 2
         self.acuuracy_max_blowout_k = 3
         self.w1 = 0.5
@@ -114,17 +139,17 @@ class AionNoizer():
 
 
 class GpsNoizer():
-    def __init__(self, vehicle_name, geo_param) -> None:
+    def __init__(self, vehicle_name, geo_param, params) -> None:
         rospy.Subscriber('/airsim_node/'+vehicle_name+'/gps/Gps', NavSatFix, self.gps_data_cb)
         self.publisher = rospy.Publisher('/'+vehicle_name+'/ins_nav_topic', NavSatFix, queue_size=10)
         self.geo_param = geo_param
 
-        self.rate = 1/10
+        self.rate = 1/params.gps_rate
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_gps_data)
         self.msg = NavSatFix()
 
-        self.accuracy = [1, 1, 1]
+        self.accuracy = params.gps_accuracy
 
         self.w1 = 0.5
         self.w2 = 0.9
@@ -169,17 +194,17 @@ class GpsNoizer():
 
 
 class ImuNoizer():
-    def __init__(self, vehicle_name) -> None:
+    def __init__(self, vehicle_name, params) -> None:
         rospy.Subscriber('/airsim_node/'+vehicle_name+'/imu/Imu', Imu, self.imu_data_cb)
         self.publisher = rospy.Publisher('/'+vehicle_name+'/ins_imu_topic', Imu, queue_size=10)
 
-        self.rate = 1/10
+        self.rate = 1/params.imu_rate
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_imu_data)
 
-        self.accuracy_orientation = 1
-        self.accuracy_angular_velocity = 1
-        self.accuracy_linear_acceleration = 1
+        self.accuracy_orientation = params.imu_orientation_accuracy
+        self.accuracy_angular_velocity = params.imu_angular_velocity_accuracy
+        self.accuracy_linear_acceleration = params.imu_linear_acceleration_accuracy
 
     def imu_data_cb(self, msg) -> None:
         self.msg = msg
@@ -268,10 +293,11 @@ if __name__=='__main__':
         rospy.loginfo("Wait vechical name")
 
     geo_param = GeodeticParam()
+    params = ParametersLoader()
     
-    lidar_n = LidarNoizer(vehicle_name)
-    aion_n = AionNoizer(vehicle_name, geo_param)
-    gps_n = GpsNoizer(vehicle_name, geo_param)
-    imu_n = ImuNoizer(vehicle_name)
+    lidar_n = LidarNoizer(vehicle_name, params)
+    aion_n = AionNoizer(vehicle_name, geo_param, params)
+    gps_n = GpsNoizer(vehicle_name, geo_param, params)
+    imu_n = ImuNoizer(vehicle_name, params)
 
     rospy.spin()
