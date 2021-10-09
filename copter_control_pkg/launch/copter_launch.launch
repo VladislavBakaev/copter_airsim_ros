@@ -1,0 +1,6 @@
+<launch>
+<!-- Main AirSom ROS Wrapper -->
+	<include file="$(find copter_control_pkg)/launch/airsim_node_with_remap.launch">
+		<arg name="host" value="$(arg host)"/>		
+	</include>
+</launch>
