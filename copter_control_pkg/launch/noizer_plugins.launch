@@ -1,0 +1,5 @@
+<launch>
+    <node name="noizer_node" pkg="copter_control_pkg" type="data_noizer_node.py" output="screen"/>
+    <node name="plugins_node" pkg="copter_control_pkg" type="aion_lidar_plugin_node.py" output="screen"/>
+    <node name="data_loader" pkg="copter_control_pkg" type="load_param_node.py" output="screen"/>
+</launch>

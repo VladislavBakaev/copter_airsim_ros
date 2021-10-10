@@ -6,7 +6,7 @@
     "aion_accuracy": [5, 5],
 
     "gps_rate": 10,
-    "gps_accuracy": [1, 1, 1],
+    "gps_accuracy": [0, 0, 0],
 
     "imu_rate": 10,
     "imu_orientation_accuracy": 1,
