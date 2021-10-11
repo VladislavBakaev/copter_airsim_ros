@@ -29,20 +29,22 @@ class ParametersLoader():
         flag = True
         rospy.loginfo('Loading parameters')
         while flag:
-            self.lidar_rate = rospy.get_param('lidar_rate', False)
-            self.lidar_accuracy = rospy.get_param('lidar_accuracy', False)
-            self.aion_rate = rospy.get_param('aion_rate', False)
-            self.aion_accuracy = rospy.get_param('aion_accuracy', False)
-            self.gps_rate = rospy.get_param('gps_rate', False)
-            self.gps_accuracy = rospy.get_param('gps_accuracy', False)
-            self.imu_rate = rospy.get_param('imu_rate', False)
-            self.imu_orientation_accuracy = rospy.get_param('imu_orientation_accuracy', False)
-            self.imu_angular_velocity_accuracy = rospy.get_param('imu_angular_velocity_accuracy', False)
-            self.imu_linear_acceleration_accuracy = rospy.get_param('imu_linear_acceleration_accuracy', False)
-            if(self.lidar_rate and self.lidar_accuracy and self.aion_rate and\
-                self.aion_accuracy and self.gps_rate and self.gps_accuracy and\
-                self.imu_rate and self.imu_angular_velocity_accuracy and\
-                self.imu_linear_acceleration_accuracy and self.imu_orientation_accuracy):
+            self.lidar_rate = rospy.get_param('lidar_rate', None)
+            self.lidar_accuracy = rospy.get_param('lidar_accuracy', None)
+            self.aion_rate = rospy.get_param('aion_rate', None)
+            self.aion_accuracy = rospy.get_param('aion_accuracy', None)
+            self.gps_rate = rospy.get_param('gps_rate', None)
+            self.gps_accuracy = rospy.get_param('gps_accuracy', None)
+            self.imu_rate = rospy.get_param('imu_rate', None)
+            self.imu_orientation_accuracy = rospy.get_param('imu_orientation_accuracy', None)
+            self.imu_angular_velocity_accuracy = rospy.get_param('imu_angular_velocity_accuracy', None)
+            self.imu_linear_acceleration_accuracy = rospy.get_param('imu_linear_acceleration_accuracy', None)
+            if((not self.lidar_rate is None) and (not self.lidar_accuracy is None)\
+                and (not self.aion_rate is None) and (not self.aion_accuracy is None)\
+                and (not self.gps_rate is None) and (not self.gps_accuracy is None) and\
+                (not self.imu_rate is None) and (not self.imu_angular_velocity_accuracy is None) and\
+                (not self.imu_linear_acceleration_accuracy is None) and\
+                (not self.imu_orientation_accuracy is None)):
                 flag = False
         rospy.loginfo('Param loaded')
 
@@ -62,12 +64,11 @@ class LidarNoizer():
 
         #probabilistic param
         self.w1 = 0.85
-        self.w2 = 0.97
+        self.w2 = 1.0
         self.w3 = 1
 
     def laser_data_cb(self, msg) ->None:
         self.msg = msg
-        # self.publisher.publish(msg)
     
     def publish_laser_data(self, event) -> None:
         range = self.probabilisticModel(self.msg.range, 500, 0) # error with distance data from airsim. Now i am using a kostyl

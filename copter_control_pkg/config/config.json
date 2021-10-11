@@ -1,6 +1,6 @@
 {
     "lidar_rate": 10,
-    "lidar_accuracy": 1,
+    "lidar_accuracy": 0,
 
     "aion_rate": 1,
     "aion_accuracy": [5, 5],
@@ -9,7 +9,7 @@
     "gps_accuracy": [0, 0, 0],
 
     "imu_rate": 10,
-    "imu_orientation_accuracy": 1,
-    "imu_angular_velocity_accuracy": 1,
-    "imu_linear_acceleration_accuracy": 1
+    "imu_orientation_accuracy": 0.1,
+    "imu_angular_velocity_accuracy": 0.1,
+    "imu_linear_acceleration_accuracy": 0.1
 }
