@@ -3,4 +3,6 @@
 	<include file="$(find copter_control_pkg)/launch/airsim_node_with_remap.launch">
 		<arg name="host" value="$(arg host)"/>		
 	</include>
+	<include file="$(find  copter_control_pkg)/launch/noizer_plugins.launch"/>
+	<include file="$(find airsim_ros_pkgs)/launch/position_controller_simple.launch"/>
 </launch>

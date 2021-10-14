@@ -5,7 +5,6 @@ import rospkg
 import os
 import re
 from airsim_ros_pkgs.srv import SetGPSPosition, Takeoff, SetLocalPosition
-from std_srvs.srv import SetBool
 
 class MissionRealizer():
     def __init__(self, mission_file, vehicle_name) -> None:
@@ -44,8 +43,10 @@ class MissionRealizer():
                     yaw = point['Yaw']
                     self.set_gps_mission(lat, lon, alt, yaw, self.vehicle_name)
                     break
+                except KeyboardInterrupt:
+                    break
                 except:
-                    rospy.loginfo('Wait...')
+                    rospy.loginfo('Wait... Point'+str(i))
                     rospy.sleep(0.5)
                     continue
 

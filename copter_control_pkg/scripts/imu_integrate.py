@@ -31,7 +31,7 @@ class ImuData():
             eastVel = self.linearEastVel + self.linearEastAcc*delay
             heightVel = self.linearHeightVel + self.linearHeightAcc*delay
 
-            self.northIns += self.linearNorthVel*delay + self.linearNorthAcc*delay**2/2
+            self.northIns += Decimal(self.linearNorthVel*delay) + Decimal(self.linearNorthAcc*delay**2/2)
             self.eastIns += self.linearEastVel*delay + self.linearEastAcc*delay**2/2
             self.heightIns += self.linearHeightVel*delay + self.linearHeightAcc*delay**2/2
 

@@ -71,7 +71,7 @@ class LidarNoizer():
         self.msg = msg
     
     def publish_laser_data(self, event) -> None:
-        range = self.probabilisticModel(self.msg.range, 500, 0) # error with distance data from airsim. Now i am using a kostyl
+        range = self.msg.range #self.probabilisticModel(self.msg.range, 500, 0) # error with distance data from airsim. Now i am using a kostyl
         new_msg = Range()
         new_msg.header = self.msg.header
         new_msg.max_range = self.msg.max_range
@@ -200,6 +200,7 @@ class ImuNoizer():
         self.publisher = rospy.Publisher('/'+vehicle_name+'/ins_imu_topic', Imu, queue_size=10)
 
         self.rate = 1/params.imu_rate
+        self.msg = Imu()
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_imu_data)
 

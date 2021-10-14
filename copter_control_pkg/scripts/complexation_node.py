@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from decimal import Decimal
 import rospy
 from geodetic_conv import GeodeticConvert
 from sensor_msgs.msg import NavSatFix, Imu, Range
@@ -12,12 +13,6 @@ from std_msgs.msg import Bool
 
 class DataComplexator():
     def __init__(self, vehicle_name) -> None:
-        rospy.Subscriber('/'+vehicle_name+'/ins_nav_topic', NavSatFix, self.gps_data_cb)
-        rospy.Subscriber('/'+vehicle_name+'/ins_imu_topic', Imu, self.imu_data_cb)
-        rospy.Subscriber('/'+vehicle_name+'/laser_dist_topic', Range, self.laser_data_cb)
-        rospy.Subscriber('/'+vehicle_name+'/aion_nav_topic', NavSatFix, self.aion_data_cb)
-        rospy.Subscriber('/'+vehicle_name+'/antispoof_topic', Bool, self.antispoof_cb)
-
         self.antispoof = False
 
         self.odom_publisher = rospy.Publisher('/airsim_node/'+vehicle_name+'/odom_local_ned', Odometry, queue_size=10)
@@ -29,14 +24,22 @@ class DataComplexator():
         self.aion_msg = NavSatFix()
         self.imu_msg = Imu()
         self.imu_moving = ImuData()
+        self.ned = [0,0,0]
 
         self.filter_gps = KalmanFilterComplex()
         self.filter_aion = KalmanFilterComplex()
         for i in range(3):
             self.filter_aion.R[i,i] = 2
 
+        rospy.Subscriber('/'+vehicle_name+'/ins_nav_topic', NavSatFix, self.gps_data_cb)
+        rospy.Subscriber('/'+vehicle_name+'/ins_imu_topic', Imu, self.imu_data_cb)
+        rospy.Subscriber('/'+vehicle_name+'/laser_dist_topic', Range, self.laser_data_cb)
+        rospy.Subscriber('/'+vehicle_name+'/aion_nav_topic', NavSatFix, self.aion_data_cb)
+        rospy.Subscriber('/'+vehicle_name+'/antispoof_topic', Bool, self.antispoof_cb)
+
         rospy.Timer(rospy.Duration(0.1), self.publish_odometry)
         rospy.Timer(rospy.Duration(0.05), self.complexation_data)
+        rospy.Timer(rospy.Duration(5), self.imu_moving_update)
 
     def complexation_data(self, event):
         
@@ -44,6 +47,8 @@ class DataComplexator():
             n, e, d = self.geodetic_convertor.geodetic2Ned(self.gps_msg.latitude,\
                                                         self.gps_msg.longitude,\
                                                         self.gps_msg.altitude)
+
+            self.ned = [n,e,d]
 
             n_aion, e_aion, d_aion = self.geodetic_convertor.geodetic2Ned(self.aion_msg.latitude,\
                                             self.aion_msg.longitude,\
@@ -68,11 +73,11 @@ class DataComplexator():
 
             self.odom_msg.header.stamp = rospy.Time.now()
             if not self.antispoof:
-                self.odom_msg.pose.pose.position.x = self.filter_gps.xErr[0]*0.5 + x
-                self.odom_msg.pose.pose.position.y = self.filter_gps.xErr[2]*0.5 + y
+                self.odom_msg.pose.pose.position.x = self.filter_gps.xErr[0]*0.2 + x
+                self.odom_msg.pose.pose.position.y = self.filter_gps.xErr[2]*0.2 + y
             else:
-                self.odom_msg.pose.pose.position.x = self.filter_aion.xErr[0]*0.5 + x
-                self.odom_msg.pose.pose.position.y = self.filter_aion.xErr[2]*0.5 + y 
+                self.odom_msg.pose.pose.position.x = self.filter_aion.xErr[0]*0.2 + x
+                self.odom_msg.pose.pose.position.y = self.filter_aion.xErr[2]*0.2 + y 
             self.odom_msg.pose.pose.position.z = -self.range_msg.range
             self.odom_msg.pose.pose.orientation = self.imu_msg.orientation
 
@@ -109,6 +114,11 @@ class DataComplexator():
 
     def antispoof_cb(self, msg):
         self.antispoof = msg.data
+
+    def imu_moving_update(self, event):
+        self.imu_moving.northIns = Decimal(self.ned[0])
+        self.imu_moving.eastIns = Decimal(self.ned[1])
+        
 
 if __name__=="__main__":
     rospy.init_node('complexation_node')
