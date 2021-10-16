@@ -55,6 +55,7 @@ class LidarNoizer():
         self.publisher = rospy.Publisher('/'+vehicle_name+'/laser_dist_topic', Range, queue_size=10)
 
         self.rate = 1/params.lidar_rate
+        self.new_msg = False
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_laser_data)
 
@@ -68,16 +69,18 @@ class LidarNoizer():
         self.w3 = 1
 
     def laser_data_cb(self, msg) ->None:
+        self.new_msg = True
         self.msg = msg
     
     def publish_laser_data(self, event) -> None:
-        range = self.msg.range #self.probabilisticModel(self.msg.range, 500, 0) # error with distance data from airsim. Now i am using a kostyl
-        new_msg = Range()
-        new_msg.header = self.msg.header
-        new_msg.max_range = self.msg.max_range
-        new_msg.min_range = self.msg.min_range
-        new_msg.range = range
-        self.publisher.publish(new_msg)
+        if self.new_msg:
+            range = self.msg.range #self.probabilisticModel(self.msg.range, 500, 0) # error with distance data from airsim. Now i am using a kostyl
+            new_msg = Range()
+            new_msg.header = self.msg.header
+            new_msg.max_range = self.msg.max_range
+            new_msg.min_range = self.msg.min_range
+            new_msg.range = range
+            self.publisher.publish(new_msg)
 
     def probabilisticModel(self, range_, max_distance, min_distance) -> Range:
         range_new = 0.0
@@ -98,6 +101,7 @@ class AionNoizer():
         self.publisher = rospy.Publisher('/'+vehicle_name+'/aion_nav_topic', NavSatFix, queue_size=10)
 
         self.rate = 1/params.aion_rate
+        self.new_msg = False
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_aion_data)
         self.msg = NavSatFix()
@@ -111,16 +115,18 @@ class AionNoizer():
         self.w3 = 1
 
     def aion_data_cb(self, msg) ->None:
+        self.new_msg = True
         self.msg = msg
 
     def publish_aion_data(self, event) -> None:
-        lat, lon = self.probabilisticModel(self.msg)
-        new_msg = NavSatFix()
-        new_msg.header = self.msg.header
-        new_msg.latitude = lat
-        new_msg.longitude = lon
-        new_msg.altitude = 0.0
-        self.publisher.publish(new_msg)
+        if self.new_msg:
+            lat, lon = self.probabilisticModel(self.msg)
+            new_msg = NavSatFix()
+            new_msg.header = self.msg.header
+            new_msg.latitude = lat
+            new_msg.longitude = lon
+            new_msg.altitude = 0.0
+            self.publisher.publish(new_msg)
 
     def probabilisticModel(self, msg) -> list:
 
@@ -146,6 +152,7 @@ class GpsNoizer():
         self.geo_param = geo_param
 
         self.rate = 1/params.gps_rate
+        self.new_msg = False
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_gps_data)
         self.msg = NavSatFix()
@@ -159,16 +166,18 @@ class GpsNoizer():
         self.acuuracy_max_blowout_k = [3, 3, 0]
 
     def gps_data_cb(self, msg) ->None:
+        self.new_msg = True
         self.msg = msg
 
     def publish_gps_data(self, event) -> None:
-        lat, lon, alt = self.probabilisticModel(self.msg)
-        new_msg = NavSatFix()
-        new_msg.header = self.msg.header
-        new_msg.latitude = lat
-        new_msg.longitude = lon
-        new_msg.altitude = alt
-        self.publisher.publish(new_msg)
+        if self.new_msg:
+            lat, lon, alt = self.probabilisticModel(self.msg)
+            new_msg = NavSatFix()
+            new_msg.header = self.msg.header
+            new_msg.latitude = lat
+            new_msg.longitude = lon
+            new_msg.altitude = alt
+            self.publisher.publish(new_msg)
 
     def probabilisticModel(self, msg) -> list:
 
@@ -201,6 +210,7 @@ class ImuNoizer():
 
         self.rate = 1/params.imu_rate
         self.msg = Imu()
+        self.new_msg = False
 
         rospy.Timer(rospy.Duration(self.rate), self.publish_imu_data)
 
@@ -209,11 +219,13 @@ class ImuNoizer():
         self.accuracy_linear_acceleration = params.imu_linear_acceleration_accuracy
 
     def imu_data_cb(self, msg) -> None:
+        self.new_msg = True
         self.msg = msg
 
     def publish_imu_data(self, event) -> None:
-        new_msg = self.probabilisticModel(self.msg)
-        self.publisher.publish(new_msg)
+        if self.new_msg:
+            new_msg = self.probabilisticModel(self.msg)
+            self.publisher.publish(new_msg)
 
     def probabilisticModel(self, msg) -> Imu:
 

@@ -5,4 +5,5 @@
 	</include>
 	<include file="$(find  copter_control_pkg)/launch/noizer_plugins.launch"/>
 	<include file="$(find airsim_ros_pkgs)/launch/position_controller_simple.launch"/>
+	<node name="complexation_node" pkg="copter_control_pkg" type="complexation_node.py" output="screen"/>
 </launch>

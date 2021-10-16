@@ -44,15 +44,14 @@ class MissionRealizer():
                     self.set_gps_mission(lat, lon, alt, yaw, self.vehicle_name)
                     break
                 except KeyboardInterrupt:
-                    break
+                    return
                 except:
                     rospy.loginfo('Wait... Point'+str(i))
                     rospy.sleep(0.5)
-                    continue
 
 
 if __name__=="__main__":
-    rospy.init_node('mission_realizer_node')
+    rospy.init_node('mission_realizer_node', disable_signals=True)
 
     rospack = rospkg.RosPack()
     pkg_path = rospack.get_path('copter_control_pkg')
