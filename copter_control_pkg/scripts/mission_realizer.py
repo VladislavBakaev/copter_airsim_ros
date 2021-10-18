@@ -4,7 +4,7 @@ import rospy
 import rospkg
 import os
 import re
-from airsim_ros_pkgs.srv import SetGPSPosition, Takeoff, SetLocalPosition
+from airsim_ros_pkgs.srv import SetGPSPosition, Takeoff, SetLocalPosition, Land
 
 class MissionRealizer():
     def __init__(self, mission_file, vehicle_name) -> None:
@@ -13,6 +13,7 @@ class MissionRealizer():
         self.mission_point = {}
         self.set_gps_mission = rospy.ServiceProxy('/airsim_node/gps_goal', SetGPSPosition)
         self.takeOff = rospy.ServiceProxy('/airsim_node/drone/takeoff', Takeoff)
+        self.land = rospy.ServiceProxy('/airsim_node/drone/land', Takeoff)
         self.local_move = rospy.ServiceProxy('/airsim_node/local_position_goal', SetLocalPosition)
         rospy.wait_for_service('/airsim_node/gps_goal')
         self.loadMission()
@@ -48,6 +49,7 @@ class MissionRealizer():
                 except:
                     rospy.loginfo('Wait... Point'+str(i))
                     rospy.sleep(0.5)
+        self.land(True)
 
 
 if __name__=="__main__":

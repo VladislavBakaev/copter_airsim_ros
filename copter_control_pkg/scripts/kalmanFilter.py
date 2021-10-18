@@ -2,8 +2,8 @@
 
 import numpy as np
 from math import sin, cos, tan
-import time 
-import matplotlib.pyplot as plt
+# import time 
+# import matplotlib.pyplot as plt
 
 class KalmanFilterComplex():
     def __init__(self):
@@ -13,8 +13,8 @@ class KalmanFilterComplex():
         H1 = np.eye(3)
         O = np.zeros((3,12))
         H = []
-        covar = [1, 1, 1] # диагональные элементы ковариационной матрицы измерений
-        q_diag = [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]# диагональные элементы ковариационной матрицы шумов
+        covar = [1.0, 1.0, 1.0] # диагональные элементы ковариационной матрицы измерений
+        q_diag = [0.0001, 0.0001, 0.0001, 0.0001, 0.0001, 0.0001]# диагональные элементы ковариационной матрицы шумов
         R = np.eye(3)
 
         for i in range(H1.shape[0]):
@@ -30,8 +30,8 @@ class KalmanFilterComplex():
             self.Q[i][i] = q_diag[i]
 
 
-        self.a = 6378245
-        self.b = 6356863
+        self.a = 6378137
+        self.b = 6356752.3142
         self.e_2 = 0.0066934216
         self.u = 7.2922115*10**(-5)
 

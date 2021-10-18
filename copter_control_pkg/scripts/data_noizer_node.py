@@ -9,8 +9,8 @@ from math import pi, sqrt, sin, cos
 
 class GeodeticParam():
     def __init__(self) -> None:
-        self.a = 6378206.4
-        self.b = 6356583.8
+        self.a = 6378137
+        self.b = 6356752.3142
         self.e_2 = 1 - self.b**2/self.a**2
 
     def getCurrentRadius(self, lat, lon, alt) -> float:
@@ -299,7 +299,7 @@ class ImuNoizer():
         return q
 
 if __name__=='__main__':    
-    rospy.init_node('data_noizer_node')
+    rospy.init_node('data_noizer_node', disable_signals=True)
     vehicle_name = ""
 
     while(vehicle_name == ""):
